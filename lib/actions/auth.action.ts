@@ -14,16 +14,17 @@ export async function signUp(params: SignUpParams) {
         success: false,
         message: "User already exists. Please sign in instead.",
       };
-    };
+    }
 
     await db.collection("users").doc(uid).set({
-        name, email
+      name,
+      email,
     });
 
     return {
-        success: true,
-        message: "You have successfully signed up. Please sign in.",
-    }
+      success: true,
+      message: "You have successfully signed up. Please sign in.",
+    };
   } catch (error: any) {
     console.error("Error creating an user:", error);
     if (error.code === "auth/email-already-in-use") {
@@ -41,24 +42,24 @@ export async function signUp(params: SignUpParams) {
 }
 
 export async function signIn(params: SignInParams) {
-    const { email, idToken } = params;
-    try {
-        const userRecord = await auth.getUserByEmail(email);
-        if (!userRecord) {
-            return {
-                success: false,
-                message: "User not found. Please sign up.",
-            };
-        };
-
-        await setSessionCookie(idToken);
-    } catch (error) {
-        console.error("Error signing in:", error);
-        return {
-            success: false,
-            message: "Failed to sign in",
-        }
+  const { email, idToken } = params;
+  try {
+    const userRecord = await auth.getUserByEmail(email);
+    if (!userRecord) {
+      return {
+        success: false,
+        message: "User not found. Please sign up.",
+      };
     }
+
+    await setSessionCookie(idToken);
+  } catch (error) {
+    console.error("Error signing in:", error);
+    return {
+      success: false,
+      message: "Failed to sign in",
+    };
+  }
 }
 
 export async function setSessionCookie(idToken: string) {
@@ -75,7 +76,7 @@ export async function setSessionCookie(idToken: string) {
     path: "/",
     sameSite: "lax",
   });
-};
+}
 
 export async function getCurrentUser(): Promise<User | null> {
   const cookieStore = await cookies();
@@ -84,7 +85,10 @@ export async function getCurrentUser(): Promise<User | null> {
 
   try {
     const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
-    const userRecord = await db.collection("users").doc(decodedClaims.uid).get();
+    const userRecord = await db
+      .collection("users")
+      .doc(decodedClaims.uid)
+      .get();
     if (!userRecord.exists) return null;
 
     return {
@@ -95,7 +99,7 @@ export async function getCurrentUser(): Promise<User | null> {
     console.error("Error getting current user:", error);
     return null;
   }
-};
+}
 
 export async function isAuthenticated(): Promise<boolean> {
   const user = await getCurrentUser();
